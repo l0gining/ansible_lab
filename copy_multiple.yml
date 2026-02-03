@@ -1,0 +1,16 @@
+---
+- name: Copy multiple files
+  hosts: fedora
+  become: yes
+
+  tasks:
+    - name: Copy multiple configuration files
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: "{{ item.owner }}"
+        mode: "{{ item.mode }}"
+        backup: yes
+      loop:
+        - { src: 'files/backup.sh', dest: '/usr/local/bin/backup.sh', owner: 'root', mode: '0755' }
+        - { src: 'files/index.html', dest: '/usr/share/nginx/html/custom.html', owner: 'root', mode: '0644' }

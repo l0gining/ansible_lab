@@ -1,0 +1,11 @@
+---
+- name: Backup files from remote server
+  hosts: fedora
+  become: yes
+
+  tasks:
+    - name: Fetch nginx config for backup
+      fetch:
+        src: /etc/nginx/nginx.conf
+        dest: backups/
+        flat: no

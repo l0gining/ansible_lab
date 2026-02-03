@@ -1,0 +1,56 @@
+---
+- name: Deploy Apache Web Server
+  hosts: fedora
+  become: yes
+
+  vars:
+    apache_port: 8080
+
+  tasks:
+    - name: Install Apache
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+        use_backend: dnf4
+
+    - name: Configure Apache to listen on port 8080
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^Listen '
+        line: "Listen {{ apache_port }}"
+        backup: yes
+      notify: restart apache
+
+    - name: Start and enable firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Open firewall for 8080
+      ansible.posix.firewalld:
+        port: "{{ apache_port }}/tcp"
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Copy website file
+      copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+        owner: apache
+        group: apache
+        mode: '0644'
+      notify: restart apache
+
+    - name: Start and enable Apache
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart apache
+      service:
+        name: httpd
+        state: restarted
